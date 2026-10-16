@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Listening Challenge</title>
+<style>
+:root{
+  --bg: #fbf6ee; --card: #fff; --muted: #6b5e4a; --accent: #ff9800; --brown: #6b3f25;
+  --success: #4caf50; --danger: #e53935; --hover-glow: #fbd380; --selected-blue: #0d47a1;
+}
+body{ background: var(--bg); font-family: "Times New Roman", serif; display:flex; justify-content:center; padding:20px 12px; }
+.app{ max-width: 860px; width: 100%; background: var(--card); border-radius:14px; padding:24px; box-shadow:0 8px 30px rgba(30,30,30,0.08); }
+.logo{text-align:center; margin-bottom:4px;}
+.logo .title{ display:inline-block; padding:8px 16px; border-radius:10px; background:linear-gradient(90deg,#fffafa,#fff1dd); font-weight:bold; font-size:1.45rem; }
+.top-meta{text-align:center;margin-bottom:12px;}
+.progress{color:var(--muted);font-size:1.15rem;}
+.set-label{font-weight:bold;font-size:1.25rem;margin-top:4px;}
+.timer-box{ display:flex; flex-direction:column; align-items:center; gap:12px; margin-bottom:12px; }
+.countdown{ background:#fff7ec; border:1px solid #f0d7b8; padding:14px 18px; border-radius:10px; width:220px; text-align:center; font-weight:bold; color:var(--brown); font-size:1.25rem; }
+.play-button{ padding:10px 18px; border-radius:8px; border:none; background: var(--brown); color:white; cursor:pointer; font-size:1.15rem; font-family: "Times New Roman", serif; }
+.play-button:hover{box-shadow:0 0 10px var(--hover-glow);}
+#skipCountdownBtn{ background:#d84315; font-size:1rem; padding:9px 16px; }
+.play-instruction{text-align:center; color:#d84315; font-weight:bold; font-size:1.3rem; margin-top:8px; margin-bottom:0px;}
+.mc-section{ margin-top:0px; }
+.per-q{ margin-bottom:10px; }
+.mc-question{font-weight:bold;margin-bottom:4px;font-size:1.2rem;}
+.mc-options-box{ background:linear-gradient(180deg,#ffffff,#fff4e6); border:1px solid #ecd7b8; border-radius:10px; padding:10px 14px; display:flex; flex-direction:column; gap:4px; box-shadow:0 3px 6px rgba(0,0,0,0.03); font-size:1.18rem; }
+.mc-option-wrapper{ display:flex; align-items:flex-start; gap:6px; padding:6px 8px; border-radius:6px; cursor:pointer; transition:0.3s; color:#000; font-family: "Times New Roman", serif; }
+.mc-option-wrapper:hover{box-shadow:0 0 8px var(--hover-glow);}
+.mc-option-wrapper.disabled{cursor:not-allowed;opacity:0.6;}
+.mc-option-wrapper input[type="radio"]{ margin-top:2px; accent-color: var(--selected-blue); }
+.next-row{ display:flex; justify-content:center; align-items:center; margin-top:18px; }
+.next-btn{ background: linear-gradient(135deg, #ff8f00, #e65100); color: white; border: none; padding: 14px 40px; border-radius: 50px; cursor: pointer; font-weight: bold; font-size: 1.3rem; font-family: "Times New Roman", serif; box-shadow: 0 8px 28px rgba(255, 111, 0, 0.45); transition: all 0.35s ease; }
+.next-btn:hover{ transform: translateY(-5px); box-shadow: 0 15px 40px rgba(255, 111, 0, 0.6); }
+.next-btn.submit { background: linear-gradient(135deg, #e65100, #c62828); box-shadow: 0 8px 28px rgba(198,40,40,.5); }
+.next-btn.submit:hover { box-shadow: 0 15px 40px rgba(198,40,40,.7); }
+.audio-ribbon{display:none; margin:20px auto; max-width:680px; width:100%; text-align:center; font-weight:bold; color:#6b3f25; font-size:1.1rem;}
+.audio-ribbon > div{ margin-bottom:10px; color:#d84315; }
+.audio-ribbon audio{ width:100%; max-width:600px; margin:0 auto; display:block; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.1); }
+.saved-notify{ position:fixed; top:18px; right:18px; background:var(--success); color:white; padding:10px 14px; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.15); opacity:0; transition:all 0.3s ease; z-index:9999; font-weight:bold; font-size:0.95rem; }
+.saved-notify.show{opacity:1;}
+#resultOverlay{ display:none; max-width:980px; margin:30px auto 0; padding:28px; background:#fffbe0; border-radius:14px; box-shadow:0 12px 40px rgba(30,30,30,0.12); font-family:"Times New Roman", serif; }
+.result-box{ border:1px solid #ddd; border-radius:12px; padding:18px; margin-bottom:22px; background:#fff; }
+.transcription{ margin:15px 0; padding:16px; background:#fdf8e1; border-left:5px solid var(--accent); border-radius:8px; font-size:1.15rem; line-height:1.9; direction:rtl; text-align:right; color:#222; }
+.transcription span.evidence-0 { background:#fff34d; padding:2px 6px; border-radius:6px; font-weight:bold; box-shadow:0 0 10px rgba(255,243,77,0.7); }
+.transcription span.evidence-1 { background:#a7f3d0; padding:2px 6px; border-radius:6px; font-weight:bold; box-shadow:0 0 10px rgba(167,243,208,0.7); color:#065f46; }
+.transcription span.evidence-2 { background:#fda4af; padding:2px 6px; border-radius:6px; font-weight:bold; box-shadow:0 0 10px rgba(253,164,175,0.7); color:#881337; }
+.transcription span.evidence-3 { background:#93c5fd; padding:2px 6px; border-radius:6px; font-weight:bold; box-shadow:0 0 10px rgba(147,197,253,0.7); color:#1e40af; }
+.transcription span.evidence-4 { background:#d8b4fe; padding:2px 6px; border-radius:6px; font-weight:bold; box-shadow:0 0 10px rgba(216,180,254,0.7); color:#6b21a8; }
+.transcription span.evidence-5 { background:#fcd34d; padding:2px 6px; border-radius:6px; font-weight:bold; box-shadow:0 0 10px rgba(252,211,77,0.7); color:#92400e; }
+.transcription span.evidence-6 { background:#fecaca; padding:2px 6px; border-radius:6px; font-weight:bold; box-shadow:0 0 10px rgba(254,202,202,0.7); color:#991b1b; }
+.transcription span.evidence-7 { background:#bfdbfe; padding:2px 6px; border-radius:6px; font-weight:bold; box-shadow:0 0 10px rgba(191,219,254,0.7); color:#1e40af; }
+.result-question{ font-weight:bold; font-size:1.22rem; margin:18px 0 10px; color:#333; }
+.result-option{ padding:10px 14px; margin:6px 0; border-radius:8px; font-size:1.15rem; display:flex; align-items:center; gap:10px; background:#f9f9f9; border:2px solid transparent; }
+.result-option.correct{ background:#d8f6df; border:2px solid #2e8b35; color:#0b5b2b; font-weight:bold; position:relative; padding-right:90px; }
+.result-option.correct::after{ content:"Correct!"; position:absolute; right:14px; font-size:18px; }
+.result-option.wrong{ background:#fce8e8; border:2px solid #c73232; color:#8b0000; font-weight:bold; position:relative; padding-right:90px; }
+.result-option.wrong::after{ content:"Wrong!"; position:absolute; right:14px; font-size:18px; }
+.result-option.your{ color:#d84315; font-weight:bold; }
+.score-box{ font-weight:bold; font-size:1.6rem; margin:0 0 30px 0; padding:20px; border-radius:12px; background:linear-gradient(90deg,#fff8b0,#ffe680); text-align:center; box-shadow:0 6px 20px rgba(255,200,0,0.25); }
+#congratsOverlay{ display:none; position:fixed; inset:0; background: rgba(0,0,0,0.45); z-index:10000; align-items:center; justify-content:center; }
+#congratsCard{ max-width:720px; width:90%; background: linear-gradient(135deg,#ffffff,#fff8f0); border-radius:18px; padding:28px; text-align:center; box-shadow: 0 20px 60px rgba(0,0,0,0.25); animation: popIn 400ms ease; }
+@keyframes popIn{ from{transform:translateY(10px) scale(.98); opacity:0} to{transform:none; opacity:1} }
+#congratsCard h1{ font-size:2rem; margin:6px 0; color:#2e6b3e; font-weight:bold; }
+#seeResultsBtn{ display:inline-block; padding:14px 22px; border-radius:12px; background: linear-gradient(90deg,#ffb74d,#ff8a65); color:white; font-weight:bold; font-size:1.1rem; border:none; cursor:pointer; box-shadow:0 8px 30px rgba(255,140,65,0.25); }
+#seeResultsBtn:hover{ transform:translateY(-3px); }
+.glow-instruction{ text-align:center; font-weight:bold; font-size:1.25rem; color:#6b3f25; text-shadow: 0 0 6px #ff8f00; }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <div class="logo"><div class="title">Listening Challenge</div></div>
+  <div class="top-meta">
+    <div class="progress" id="progressText"></div>
+    <div class="set-label" id="setLabel"></div>
+  </div>
+  <div class="timer-box">
+    <div class="countdown" id="countdownBox">Loading...</div>
+    <button id="skipCountdownBtn" class="play-button">Skip Countdown</button>
+  </div>
+  <div id="studyInstruction" class="glow-instruction">Study the Questions</div>
+  <div style="text-align:center; margin-top:12px;">
+    <button id="playBtn" class="play-button" style="display:none;">Play Audio</button>
+    <div id="audioNote" class="play-instruction" style="display:none;">
+      You will hear the recording <strong>twice</strong>
+    </div>
+  </div>
+  <div class="audio-ribbon" id="audioRibbon">
+    <div>Now playing... (beep → audio → beep → audio)</div>
+    <audio id="audioPlayer" controls preload="auto"></audio>
+  </div>
+  <audio id="beepAudio" src="beep.wav" preload="auto"></audio>
+  <div class="mc-section" id="mcSection"></div>
+  <div class="next-row">
+    <button id="nextBtn" class="next-btn">Next Challenge</button>
+  </div>
+</div>
+
+<div id="congratsOverlay">
+  <div id="congratsCard">
+    <img src="https://media.giphy.com/media/111ebonMs90YLu/giphy.gif" alt="celebrate" style="max-width:220px;margin:0 auto 12px auto;display:block;" />
+    <h1>Challenge Completed Successfully!</h1>
+    <p>Great job! Click below to see your detailed results.</p>
+    <button id="seeResultsBtn">See Results</button>
+  </div>
+</div>
+
+<div id="resultOverlay"></div>
+<div class="saved-notify" id="savedNotify">Answer saved</div>
+
+<script>
+const studySecondsPerQuestion = 15;
+let currentPage = 1;
+let countdownInterval = null;
+let timeLeft = 0;
+let audioSequenceActive = false;
+let abortAudio = false;
+const userAnswers = {};
+const letters = ["A", "B", "C", "D"];
+
+const el = {
+  progressText: document.getElementById("progressText"),
+  setLabel: document.getElementById("setLabel"),
+  countdownBox: document.getElementById("countdownBox"),
+  skipCountdownBtn: document.getElementById("skipCountdownBtn"),
+  playBtn: document.getElementById("playBtn"),
+  mcSection: document.getElementById("mcSection"),
+  nextBtn: document.getElementById("nextBtn"),
+  audioRibbon: document.getElementById("audioRibbon"),
+  audioPlayer: document.getElementById("audioPlayer"),
+  beepAudio: document.getElementById("beepAudio"),
+  savedNotify: document.getElementById("savedNotify"),
+  audioNote: document.getElementById("audioNote"),
+  resultOverlay: document.getElementById("resultOverlay"),
+  studyInstruction: document.getElementById("studyInstruction"),
+  congratsOverlay: document.getElementById("congratsOverlay"),
+  seeResultsBtn: document.getElementById("seeResultsBtn")
+};
+
+const listeningSets = [
+  {
+    audio: "01.wav",
+    transcription: `خیلی‌ها می‌گن آقا اون سرزمین موعود و اون اسرائیل بزرگی که این‌ها می‌گن به خاک ما کاری ندارند. به همسایگی خاک ما کار دارند. این‌ها آدم‌های جهانخواری هستن. اگر بیان در همسایگی ما، بعداً همسایه ما نخواهند شد، می‌خوان صاحب کشور ما بشن. ما اجازه نمی‌دیم اسرائیل بزرگ شکل بگیره. الانم دارم می‌گم، اینا دنبال اسرائیل بزرگن، ما نمی‌ذاریم شکل بگیره. مرزهای ایران از مرزهای کنونی که به ظاهر روی نقشه دنیاست، خیلی فراتر است و برگ برنده‌هایی، برگ‌های برنده‌ای داریم آقای واشقانی که اگه این‌ها رو رو کنیم، دلیل نداره ما اگه امروز یه جنگی شد همون روز اول بیایم برگ برنده رو کنیم. ما موشک‌هایی از ۱۵ تا ۲۵ سال پیشمون رو امتحان کردیم. ما برای این موشک‌ها جا نداشتیم خدا پدرشو بیامرزه چون سوخت موشک نسل جدید نگهداریش هزینه داره، موشک‌های نسل جدیدی که تولید می‌کنیم ما این موشک‌های نسل قدیممونو کوبوندیم تو سر این‌ها. و یه چیزی به شما بگم، الان سه تا موشک متعارف، ببین من دنبال اصلاً بحث‌های نامتعارفمون نیستم، من دنبال سلاح پلاسما که حالا خیلی از مردم تو جنگ من گفتم پس این پلاسما چی شد؟ آقا مگه قراره یه زنبوری اومد نیشت زد تو از مگس‌کش برقی استفاده کنی برای اون؟ اصلاً دلیلی نداره ما الان استفاده کنیم. ما گذاشتیم اربابش اگه اومد اونم در زمان لزوم از سلاح پلاسماییمون هم استفاده کنیم، کما اینکه سوخت موشک سجیل سوخت پلاسماییست من الان اینجا به مردم اعلام بکنم. سلاح پلاسمایی هم داریم الان در فاز دفاعی ازش استفاده می‌کنیم، زمانی که لازم بشه حتماً در باب تهاجم ازش استفاده خواهیم کرد. ما فقط یه چیزی به شما بگم، بیش از تصور اینا، اینا اومدن هرچی گفتن من امروز معادلاتشون رو حتماً به هم می‌زنم و خودشون می‌دونن اعلام نمی‌کنن، اون وریا می‌دونن اعلام نمی‌کنن. ما بالای ۲۰۰ هزار موشک بالستیک داریم، بالای ۶۰۰ هزار موشک داریم. مسئولین نظامی ما مصاحبه نمی‌کنن چون نیروی رسمی‌ان، بقیه هم دل و جگرش رو ندارن.`,
+    questions: [
+      { id: "1-1", question: "What is the speaker’s primary purpose in repeatedly emphasizing that Iran has not revealed its “winning cards”?",
+        keyphrases: ["دلیل نداره ما اگه امروز یه جنگی شد همون روز اول بیایم برگ برنده رو کنیم. ما موشک‌هایی از ۱۵ تا ۲۵ سال پیشمون رو امتحان کردیم","ما گذاشتیم اربابش اگه اومد اونم در زمان لزوم از سلاح پلاسماییمون هم استفاده کنیم"],
+        options: [
+          { answer: "To suggest strategic restraint while simultaneously projecting deterrence", correct:true },
+          { answer: "To reassure the public that military escalation will be avoided", correct:false },
+          { answer: "To invite international negotiations from a position of weakness", correct:false },
+          { answer: "To justify past military failures by blaming secrecy", correct:false }
+        ]
+      },
+      { id: "1-2", question: "When the speaker compares the use of plasma weapons to using an electric flyswatter on a bee, what rhetorical function does this analogy serve?",
+        keyphrases: ["مگه قراره یه زنبوری اومد نیشت زد تو از مگس‌کش برقی استفاده کنی برای اون؟ اصلاً دلیلی نداره ما الان استفاده کنیم"],
+        options: [
+          { answer: "It minimizes the technological complexity of advanced weapons", correct:false },
+          { answer: "It suggests that current enemies are insignificant compared to potential future adversaries", correct:true },
+          { answer: "It explains why conventional missiles are more effective than unconventional ones", correct:false },
+          { answer: "It criticizes public misunderstanding of military terminology", correct:false }
+        ]
+      },
+      { id: "1-3", question: "Which underlying message is most strongly implied by the speaker’s claim that Iran has only tested missiles developed 15–25 years ago?",
+        keyphrases: ["موشک‌های نسل جدیدی که تولید می‌کنیم ما این موشک‌های نسل قدیممونو کوبوندیم تو سر این‌ها"],
+        options: [
+          { answer: "Iran lacks the economic capacity to modernize its military", correct:false },
+          { answer: "Iran possesses more advanced capabilities that remain undisclosed", correct:true },
+          { answer: "Iran prefers diplomatic solutions over military confrontation", correct:false },
+          { answer: "Iran’s missile program has stagnated due to international sanctions", correct:false }
+        ]
+      },
+      { id: "1-4", question: "How does the speaker’s repeated reference to enemies knowing the truth “but not announcing it” most affect the credibility of the overall message?",
+        keyphrases: ["خودشون می‌دونن اعلام نمی‌کنن، اون وریا می‌دونن اعلام نمی‌کنن","مسئولین نظامی ما مصاحبه نمی‌کنن چون نیروی رسمی‌ان، بقیه هم دل و جگرش رو ندارن"],
+        options: [
+          { answer: "It strengthens credibility by implying insider knowledge", correct:false },
+          { answer: "It neutralizes skepticism by appealing to national pride", correct:false },
+          { answer: "It shifts responsibility to military officials rather than political leaders", correct:false },
+          { answer: "It weakens credibility by relying on unverifiable assertions", correct:true }
+        ]
+      }
+    ]
+  },
+  {
+    audio: "02.wav",
+    transcription: `بله، همان‌طور که جناب ناخدا حقیقت فرمودند، عملیات مروارید یکی از اثرهای خیلی مهم دیگرش ضربه زدن به روحیه ارتش عراق بودش. ولی در جبهه‌های زمینی زمان بیشتری طول کشید تا نیروهای ایرانی بتوانند شروع کنند به عقب‌راندن نیروهای عراقی و بازپس‌گیری اراضی اشغال‌شده. اولین عملیات موفق ایران تقریباً یک سال بعد از در زمین البته، یک سال بعد از شروع جنگ، عملیات ثامن‌الائمه بود که باز هم توسط ارتش طراحی و با همکاری سپاه انجام شد، نیروی زمینی ارتش البته و برای شکست حصر آبادان بود. در مهرماه ۱۳۶۰ و در آن دوره مهم‌ترین عملیات باز هم عملیات بیت‌المقدس بود در خردادماه ۱۳۶۱، سوم خرداد روز معروف که خرمشهر آزاد شد و حدود ۵۰۰۰ کیلومترمربع از اراضی ایران، اراضی اشغالی آزاد شدش. و این مقطعی بود که بحث پذیرش آتش‌بس و خاتمه جنگ و یا نفوذ به خاک عراق مطرح شد و اما به تعبیر آقا جناب حقیقت تصمیم نابخردانه‌ای گرفته شد، البته از نظر ایشان که جنگ ادامه پیدا کند و وارد خاک عراق بشود ایران. بعد از اینکه ایران وارد خاک عراق شد عملیات‌های مختلفی عمدتاً توسط سپاه، بعضاً با همکاری ارتش و سپاه انجام شد و تا اینکه در دی‌ماه سال ۶۵ عملیات کربلای ۴ و متعاقب آن عملیات کربلای ۵ که موفقیت‌آمیز نبود و عملاً در جبهه‌های نبرد ایران و عراق هر دو به بن‌بست رسیدند و جنگ دوباره رفت به دریا. جنگی شروع شد با عنوان جنگ نفتکش‌ها که این بار پای آمریکا، شوروی و کشورهای دیگر را هم به جنگ ایران باز کرد.`,
+    questions: [
+      { id: "2-1", question: "What was the main strategic impact of Operation Morvarid according to Commander Haqiqat?",
+        keyphrases: ["عملیات مروارید یکی از اثرهای خیلی مهم دیگرش ضربه زدن به روحیه ارتش عراق بودش"],
+        options: [
+          { answer: "It significantly affected the morale of the Iraqi army", correct:true },
+          { answer: "It allowed Iran to immediately push Iraqi forces back on land", correct:false },
+          { answer: "It caused Iran to invade Iraqi territory immediately", correct:false },
+          { answer: "It led directly to the liberation of Khorramshahr", correct:false }
+        ]
+      },
+      { id: "2-2", question: "Which event marked the first major successful ground operation by Iran?",
+        keyphrases: ["اولین عملیات موفق ایران تقریباً یک سال بعد از در زمین البته، یک سال بعد از شروع جنگ، عملیات ثامن‌الائمه بود که باز هم توسط ارتش طراحی و با همکاری سپاه انجام شد، نیروی زمینی ارتش البته و برای شکست حصر آبادان بود"],
+        options: [
+          { answer: "Operation Karbala-4", correct:false },
+          { answer: "Operation Morvarid", correct:false },
+          { answer: "Operation Beit al-Moqaddas", correct:false },
+          { answer: "Operation Thamen al-A’emmeh", correct:true }
+        ]
+      },
+      { id: "2-3", question: "What does the passage indicate about the pace of Iranian ground operations at the beginning of the war?",
+        keyphrases: ["ولی در جبهه‌های زمینی زمان بیشتری طول کشید تا نیروهای ایرانی بتوانند شروع کنند به عقب‌راندن نیروهای عراقی و بازپس‌گیری اراضی اشغال‌شده"],
+        options: [
+          { answer: "They were able to push Iraqi forces back immediately", correct:false },
+          { answer: "Progress on land was slower compared to other fronts", correct:true },
+          { answer: "Iran prioritized invading Iraqi territory quickly", correct:false },
+          { answer: "Naval operations delayed the ground offensives", correct:false }
+        ]
+      },
+      { id: "2-4", question: "What shift occurred after Operation Karbala-5 failed?",
+        keyphrases: ["عملاً در جبهه‌های نبرد ایران و عراق هر دو به بن‌بست رسیدند و جنگ دوباره رفت به دریا. جنگی شروع شد با عنوان جنگ نفتکش‌ها که این بار پای آمریکا، شوروی و کشورهای دیگر را هم به جنگ ایران باز کرد"],
+        options: [
+          { answer: "Iran immediately accepted a ceasefire", correct:false },
+          { answer: "The war moved back to naval engagements", correct:true },
+          { answer: "Iraqi forces invaded deeper into Iran", correct:false },
+          { answer: "The IRGC and army ceased joint operations", correct:false }
+        ]
+      }
+    ]
+  },
+  {
+    audio: "03.wav",
+    transcription: `اجتماع بزرگ حجاب فاطمی در تهران برگزار شد. شرکت‌کنندگان با دردست‌داشتن شعارنوشته‌هایی در حمایت از حجاب و عفاف بر ضرورت صیانت از فرهنگ ایرانی اسلامی و مقابله با هجمه‌های فرهنگی غرب تأکید کردند. حجاب یک امنیته برای ما و احساس آرامش به ما می‌ده. من امروز اومدم اینجا، افتخار می‌کنم به این چادری که سرمه، به اینکه ایرانی‌ام، اومدم که دفاع کنم از چادرم که این یه هدیه‌ای از حضرت زهرا مادر منه. من به‌خاطر آینده بچه‌ام، به‌خاطر سلامت و امنیت جامعه. مسئله ما پوشش اصلی جامعه‌ست و صرفاً پوشش ما چادر نیستش و حفظ حیا و امنیت خانواده. مطالبه امروز خواهران ما مطالبه‌ای هست برای حفظ نظام خانواده، حفظ اصالت زن`,
+    questions: [
+      { id: "3-1", question: "What was the main purpose of the gathering in Tehran?”?",
+        keyphrases: ["شرکت‌کنندگان با دردست‌داشتن شعارنوشته‌هایی در حمایت از حجاب و عفاف بر ضرورت صیانت از فرهنگ ایرانی اسلامی و مقابله با هجمه‌های فرهنگی غرب تأکید کردند","مسئله ما پوشش اصلی جامعه‌ست و صرفاً پوشش ما چادر نیستش و حفظ حیا و امنیت خانواده"],
+        options: [
+          { answer: "To protest against Western countries", correct:false },
+          { answer: "To support hijab and modesty while emphasizing cultural and family preservation", correct:true },
+          { answer: "To promote the chador as the only acceptable clothing", correct:false },
+          { answer: "To discuss political reforms in Iranian society", correct:false }
+        ]
+      },
+      { id: "3-2", question: "Which of the following best reflects the speaker’s view on the chador?",
+        keyphrases: ["افتخار می‌کنم به این چادری که سرمه، به اینکه ایرانی‌ام، اومدم که دفاع کنم از چادرم که این یه هدیه‌ای از حضرت زهرا مادر منه"],
+        options: [
+          { answer: "It is a personal symbol of cultural and religious identity", correct:true }, 
+          { answer: "It is mandatory for all Iranian women", correct:false },
+          { answer: "It is outdated and should be optional", correct:false },
+          { answer: "It is less important than Western-style clothing", correct:false }
+        ]
+      },
+      { id: "3-3", question: "Beyond clothing, what societal values does the speaker associate with hijab?",
+        keyphrases: ["حفظ حیا و امنیت خانواده","مطالبه امروز خواهران ما مطالبه‌ای هست برای حفظ نظام خانواده، حفظ اصالت زن"],
+        options: [
+          { answer: "Family security, modesty, and preservation of women’s dignity", correct:true }, 
+          { answer: "Political influence and leadership", correct:false },
+          { answer: "Economic empowerment", correct:false },
+          { answer: "International diplomacy", correct:false }
+        ]
+      },
+      { id: "3-4", question: "What broader claim do the participants make about the issue of hijab in society?",
+        keyphrases: ["مسئله ما پوشش اصلی جامعه‌ست و صرفاً پوشش ما چادر نیستش و حفظ حیا و امنیت خانواده"],
+        options: [
+          { answer: "It is limited to religious practice among women who choose the chador", correct:false },
+          { answer: "It is connected to social stability, family integrity, and public morality", correct:true },
+          { answer: "It is primarily a matter of individual fashion preference", correct:false },
+          { answer: "It is mainly a response to recent legal changes", correct:false }
+        ]
+      }
+    ]
+  }
+];
+
+const TOTAL_PAGES = listeningSets.length;
+
+/* ====================== ALL FUNCTIONS (unchanged except minor robustness) ====================== */
+function updateButtonText() {
+  el.nextBtn.textContent = currentPage === TOTAL_PAGES ? "Submit Challenge" : "Next Challenge";
+  el.nextBtn.classList.toggle("submit", currentPage === TOTAL_PAGES);
+}
+function stopAllAudio() {
+  abortAudio = true; audioSequenceActive = false;
+  [el.beepAudio, el.audioPlayer].forEach(a => { try { a.pause(); a.currentTime = 0; } catch(e){} });
+  el.audioPlayer.src = "";
+  el.audioRibbon.style.display = "none";
+  el.playBtn.style.display = "inline-block";
+}
+async function playAudioSequence() {
+  if (audioSequenceActive) return;
+  abortAudio = false; audioSequenceActive = true;
+  el.audioNote.style.display = "none";
+  el.audioRibbon.style.display = "block";
+  el.playBtn.style.display = "none";
+  el.audioPlayer.src = listeningSets[currentPage-1].audio;
+  el.audioPlayer.load();
+  const delay = ms => new Promise(r => setTimeout(r, ms));
+  const waitEnd = audio => new Promise(r => { audio.onended = () => { audio.currentTime = 0; r(); }; });
+  try {
+    await el.beepAudio.play(); await delay(1000);
+    await el.audioPlayer.play(); await waitEnd(el.audioPlayer);
+    await delay(1000); await el.beepAudio.play(); await delay(1000);
+    await el.audioPlayer.play(); await waitEnd(el.audioPlayer);
+  } catch(e) {}
+  if (!abortAudio) { audioSequenceActive = false; el.playBtn.style.display = "inline-block"; }
+}
+function enterListeningPhase() {
+  el.countdownBox.style.display = el.skipCountdownBtn.style.display = "none";
+  el.playBtn.style.display = "inline-block";
+  el.audioNote.style.display = "block";
+  el.studyInstruction.style.display = "none";
+  disableMCQs(false);
+}
+function startStudyTimerForPage(page) {
+  stopAllAudio();
+  const set = listeningSets[page-1];
+  timeLeft = studySecondsPerQuestion * set.questions.length;
+  el.countdownBox.textContent = `Study time — ${formatTime(timeLeft)}`;
+  el.countdownBox.style.display = el.skipCountdownBtn.style.display = "block";
+  el.playBtn.style.display = "none";
+  el.audioRibbon.style.display = "none";
+  el.audioNote.style.display = "none";
+  el.studyInstruction.style.display = "block";
+  disableMCQs(true);
+  clearInterval(countdownInterval);
+  countdownInterval = setInterval(() => {
+    timeLeft--;
+    if (timeLeft <= 0) { clearInterval(countdownInterval); enterListeningPhase(); }
+    else el.countdownBox.textContent = `Study time — ${formatTime(timeLeft)}`;
+  }, 1000);
+}
+function formatTime(s) { return `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`; }
+function showSaved() {
+  el.savedNotify.classList.add("show");
+  clearTimeout(el.savedNotify._t);
+  el.savedNotify._t = setTimeout(() => el.savedNotify.classList.remove("show"), 1200);
+}
+function disableMCQs(flag) {
+  el.mcSection.querySelectorAll('input[type="radio"]').forEach(r => r.disabled = flag);
+}
+function renderMCQs(page) {
+  const set = listeningSets[page-1];
+  el.mcSection.innerHTML = "";
+  set.questions.forEach((q, qIdx) => {
+    const wrapper = document.createElement("div"); wrapper.className = "per-q";
+    const qEl = document.createElement("div"); qEl.className = "mc-question";
+    qEl.textContent = `${qIdx+1}. ${q.question}`;
+    wrapper.appendChild(qEl);
+    const box = document.createElement("div"); box.className = "mc-options-box";
+    q.options.forEach((opt, i) => {
+      const label = document.createElement("label"); label.className = "mc-option-wrapper";
+      const input = document.createElement("input");
+      input.type = "radio"; input.name = q.id;
+      if (userAnswers[q.id] === i) input.checked = true;
+      input.onchange = () => { userAnswers[q.id] = i; showSaved(); };
+      const letter = document.createElement("strong");
+      letter.textContent = letters[i] + ") ";
+      const text = document.createElement("span");
+      text.textContent = opt.answer;
+      label.appendChild(input); label.appendChild(letter); label.appendChild(text);
+      box.appendChild(label);
+    });
+    wrapper.appendChild(box);
+    el.mcSection.appendChild(wrapper);
+  });
+}
+
+/* FINAL HIGHLIGHTING (works perfectly now) */
+function showResultsPage() {
+  stopAllAudio();
+  document.getElementById("app").style.display = "none";
+  el.congratsOverlay.style.display = "none";
+  el.resultOverlay.style.display = "block";
+  let html = "", correct = 0, total = 0;
+
+  listeningSets.forEach((set, sIdx) => {
+    let transcribedText = set.transcription;
+
+    // Collect all highlights for this audio
+    const highlights = [];
+    set.questions.forEach((q, qIndex) => {
+      const colorClass = `evidence-${qIndex % 8}`;
+      const phrases = Array.isArray(q.keyphrases) ? q.keyphrases : [q.keyphrases];
+      phrases.forEach(phrase => {
+        const trimmed = phrase.trim();
+        if (trimmed) highlights.push({ phrase: trimmed, replacement: `<span class="${colorClass}">${trimmed}</span>` });
+      });
+    });
+
+    // Longest first to avoid partial matches
+    highlights.sort((a, b) => b.phrase.length - a.phrase.length);
+    highlights.forEach(hl => {
+      const escaped = hl.phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(escaped, 'g');
+      transcribedText = transcribedText.replace(regex, hl.replacement);
+    });
+
+    html += `<div class="result-box"><strong>Audio ${sIdx+1}</strong><div class="transcription">${transcribedText}</div></div>`;
+
+    set.questions.forEach((q, qIndex) => {
+      total++;
+      const userIdx = userAnswers[q.id];
+      const correctIdx = q.options.findIndex(o => o.correct);
+      if (userIdx === correctIdx) correct++;
+
+      const colorClass = `evidence-${qIndex % 8}`;
+      const badge = `<span style="background:#ff9800;color:white;padding:3px 9px;border-radius:5px;font-size:0.85rem;font-weight:bold;">Q${qIndex+1}</span>`;
+      html += `<div class="result-question">${badge} ${q.question}</div><div class="mc-options-box">`;
+      q.options.forEach((opt, i) => {
+        let cls = "result-option";
+        let extra = "";
+        if (i === correctIdx) cls += " correct";
+        if (i === userIdx && i !== correctIdx) cls += " wrong";
+        if (i === userIdx) extra = '<span class="your">Your answer → </span>';
+        html += `<div class="${cls}">${extra}<strong>${letters[i]})</strong> ${opt.answer}</div>`;
+      });
+      html += `</div>`;
+
+      const evidences = Array.isArray(q.keyphrases) ? q.keyphrases.map(p => p.trim()) : [];
+      if (evidences.length) {
+        html += `<div style="margin:10px 0;color:#d84315;font-size:0.98rem;">
+                   Evidence → <strong>${evidences.map(p => `“${p}”`).join(" , ")}</strong>
+                 </div>`;
+      }
+    });
+  });
+
+  const percent = Math.round((correct / total) * 100);
+  el.resultOverlay.innerHTML = `<div class="score-box">Final Score: ${correct}/${total} (${percent}%)</div>${html}`;
+}
+
+function initPage() {
+  stopAllAudio();
+  el.progressText.textContent = `${currentPage} out of ${TOTAL_PAGES}`;
+  el.setLabel.textContent = `Listening Question Set ${currentPage}`;
+  renderMCQs(currentPage);
+  startStudyTimerForPage(currentPage);
+  updateButtonText();
+}
+
+/* Event Listeners */
+el.skipCountdownBtn.onclick = () => { clearInterval(countdownInterval); timeLeft = 0; enterListeningPhase(); };
+el.playBtn.onclick = playAudioSequence;
+el.nextBtn.onclick = () => {
+  stopAllAudio();
+  if (currentPage < TOTAL_PAGES) { currentPage++; initPage(); }
+  else { el.congratsOverlay.style.display = "flex"; }
+};
+el.seeResultsBtn.onclick = () => { stopAllAudio(); el.congratsOverlay.style.display = "none"; showResultsPage(); };
+
+initPage();
+</script>
+</body>
+</html>
